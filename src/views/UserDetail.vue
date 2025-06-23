@@ -275,7 +275,7 @@ import {
   PlayIcon,
   KeyIcon,
   ShieldCheckIcon,
-  LoginIcon,
+  ArrowRightOnRectangleIcon,
   CogIcon,
   UserIcon,
 } from '@heroicons/vue/24/outline'
@@ -380,7 +380,7 @@ const formatDate = (dateString: string) => {
 
 const getActivityIcon = (type: string) => {
   const icons = {
-    login: LoginIcon,
+    login: ArrowRightOnRectangleIcon,
     update: CogIcon,
     permission: ShieldCheckIcon,
   }
