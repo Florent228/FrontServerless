@@ -1,0 +1,63 @@
+{
+  "name": "faas-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "format": "prettier --write src/",
+    "type-check": "vue-tsc --noEmit",
+    "lighthouse": "lhci autorun"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5",
+    "pinia": "^2.1.7",
+    "axios": "^1.6.2",
+    "axios-retry": "^4.0.0",
+    "@vueuse/core": "^10.7.0",
+    "@vueuse/motion": "^2.0.0",
+    "@headlessui/vue": "^1.7.16",
+    "@heroicons/vue": "^2.0.18",
+    "zod": "^3.22.4",
+    "vue-sonner": "^1.1.2",
+    "nprogress": "^0.2.0",
+    "canvas-confetti": "^1.9.2",
+    "papaparse": "^5.4.1",
+    "vue-virtual-scroll-list": "^2.3.5",
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.2",
+    "@vue/test-utils": "^2.4.3",
+    "vite": "^5.0.8",
+    "vitest": "^1.1.0",
+    "cypress": "^13.6.2",
+    "vue-tsc": "^1.8.25",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6",
+    "@types/nprogress": "^0.2.3",
+    "@types/papaparse": "^5.3.14",
+    "eslint": "^8.56.0",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "prettier": "^3.1.1",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "vite-plugin-pwa": "^0.17.4",
+    "vite-plugin-compression": "^0.5.1",
+    "workbox-window": "^7.0.0",
+    "@lhci/cli": "^0.12.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
