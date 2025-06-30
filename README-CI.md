@@ -1,21 +1,38 @@
 # 🚀 CI/CD Setup - GitHub Container Registry
 
-## ⚡ Activation en 2 étapes
+## ⚡ Activation - Étapes selon votre situation
 
-### 1. **Activer GitHub Container Registry**
-- Allez dans votre repository GitHub
-- **Settings** > **Actions** > **General**
-- Dans "Workflow permissions", sélectionnez **"Read and write permissions"**
-- Cochez **"Allow GitHub Actions to create and approve pull requests"**
+### **Repository personnel**
 
-### 2. **Push & Enjoy!**
+1. **Settings** > **Actions** > **General**
+2. "Workflow permissions" → **"Read and write permissions"**
+3. Cochez **"Allow GitHub Actions to create and approve pull requests"**
+
+### **Repository d'organisation** (si erreur de permissions)
+
+#### Option A : Permissions d'organisation
+1. **Organisation Settings** > **Actions** > **General**
+2. Activez **"Allow all actions and reusable workflows"**
+3. **Organisation Settings** > **Packages** 
+4. Activez **"Improved container support"**
+
+#### Option B : Token personnel (si Option A impossible)
+1. Créez un **Personal Access Token** :
+   - GitHub > **Settings** > **Developer settings** > **Personal access tokens** > **Tokens (classic)**
+   - **Generate new token (classic)**
+   - Permissions : `write:packages`, `read:packages`
+2. Ajoutez le secret dans le repository :
+   - **Repository Settings** > **Secrets and variables** > **Actions**
+   - **New repository secret** : nom `GHCR_TOKEN`, valeur = votre token
+
+### **Push & Test!**
 ```bash
 git add .
 git commit -m "feat: activate CI/CD"
 git push origin master
 ```
 
-✅ **C'est tout !** Votre image sera automatiquement publiée sur GitHub Container Registry.
+✅ **L'image sera publiée sur GitHub Container Registry !**
 
 ## 📋 Résultat
 
@@ -40,10 +57,16 @@ docker run -d -p 3000:80 ghcr.io/votre-username/faas-frontend:latest
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
+## 🚨 Problème de permissions ?
+
+**Erreur "installation not allowed to Create organization package" ?**
+👉 **[Guide de dépannage détaillé](TROUBLESHOOT-PERMISSIONS.md)**
+
 ## 📖 Documentation complète
 
 - **Guide détaillé** : [CI-CD.md](CI-CD.md)
 - **Guide Docker** : [DOCKER.md](DOCKER.md)
+- **Dépannage permissions** : [TROUBLESHOOT-PERMISSIONS.md](TROUBLESHOOT-PERMISSIONS.md)
 
 ## 🛠️ Personalisation
 
