@@ -68,6 +68,7 @@ docs/
 .github
 .gitlab-ci.yml
 .travis.yml
+CI-CD.md
 
 # Autres
 *.tgz

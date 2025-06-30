@@ -1,0 +1,92 @@
+name: 🐳 Build and Push to GitHub Container Registry
+
+# Déclenche le workflow sur push vers master
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+
+# Variables d'environnement globales
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: faas-frontend
+
+jobs:
+  build-and-push:
+    name: 🚀 Build and Push Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 📥 Checkout du code source
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      # 🔧 Configuration de Docker Buildx
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 🔑 Connexion au GitHub Container Registry
+      - name: 🔑 Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 🏷️ Extraction des métadonnées
+      - name: 🏷️ Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # 🔨 Build et Push de l'image Docker
+      - name: 🔨 Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # 🧹 Nettoyage des anciennes images (GitHub Package cleanup)
+      - name: 🧹 Clean up old images
+        continue-on-error: true
+        uses: actions/delete-package-versions@v4
+        with:
+          package-name: ${{ env.IMAGE_NAME }}
+          package-type: 'container'
+          min-versions-to-keep: 5
+          delete-only-untagged-versions: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 📊 Résumé du déploiement
+      - name: 📊 Deployment Summary
+        run: |
+          echo "## 🎉 Déploiement réussi" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Images publiées" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Commande pour utiliser l'image" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -d -p 3000:80 ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Liens utiles" >> $GITHUB_STEP_SUMMARY
+          echo "- [📦 Packages GitHub](https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_NAME }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [🔄 Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY 

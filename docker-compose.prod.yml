@@ -1,0 +1,35 @@
+# Alternative : Utilise l'image publiée sur GitHub Container Registry
+# au lieu de builder localement
+
+services:
+  # Application FAAS Frontend depuis GitHub Container Registry
+  faas-app:
+    image: ghcr.io/votre-username/faas-frontend:latest  # ⬅️ Remplacez par votre username GitHub
+    container_name: faas-app
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Commandes utiles avec ce fichier :
+#
+# 1. Récupérer la dernière image et lancer
+#    docker-compose -f docker-compose.prod.yml pull
+#    docker-compose -f docker-compose.prod.yml up -d
+#
+# 2. Mettre à jour vers la dernière version
+#    docker-compose -f docker-compose.prod.yml pull faas-app
+#    docker-compose -f docker-compose.prod.yml up -d faas-app
+#
+# 3. Voir les logs
+#    docker-compose -f docker-compose.prod.yml logs -f faas-app
+#
+# 4. Arrêter
+#    docker-compose -f docker-compose.prod.yml down 

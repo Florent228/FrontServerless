@@ -242,6 +242,32 @@ curl http://localhost:3000
 # Ouvrez http://localhost:3000 dans votre navigateur
 ```
 
+## 🚀 CI/CD - Déploiement automatique
+
+Le projet inclut un workflow GitHub Actions qui publie automatiquement l'image Docker sur **GitHub Container Registry** à chaque push sur `master`.
+
+### **Configuration rapide**
+
+1. Activez les permissions d'écriture dans **Settings** > **Actions** > **General**
+2. Push sur master → Image automatiquement publiée ! 
+
+### **Utiliser l'image publiée**
+
+Au lieu de builder localement, vous pouvez utiliser l'image publiée :
+
+```yaml
+# docker-compose.yml
+services:
+  faas-app:
+    image: ghcr.io/votre-username/faas-frontend:latest  # ⬅️ Au lieu de build: .
+    container_name: faas-app
+    ports:
+      - "3000:80"
+    # ... reste de la configuration
+```
+
+📖 **Guide complet** : [CI-CD.md](CI-CD.md)
+
 ---
 
 💡 **Conseil** : Sauvegardez les commandes Docker Compose fréquemment utilisées dans un fichier texte !
