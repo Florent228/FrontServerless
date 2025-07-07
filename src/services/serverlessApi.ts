@@ -13,16 +13,16 @@ import type {
 
 // Configuration par défaut des fonctions serverless
 const DEFAULT_CONFIG: ServerlessConfig = {
-  baseUrl: process.env.VITE_OPENFAAS_URL || 'http://localhost:8080',
+  baseUrl: import.meta.env.VITE_OPENFAAS_URL || '', // Utilise le proxy Vite en développement
   namespace: 'openfaas-fn',
   functions: {
     passwordGeneration: {
-      name: 'password-generator',
-      endpoint: '/function/password-generator'
+      name: 'pass-gen',
+      endpoint: '/function/pass-gen'
     },
     twoFactorGeneration: {
-      name: '2fa-generator',
-      endpoint: '/function/2fa-generator'
+      name: 'mfa-generator',
+      endpoint: '/function/mfa-generator'
     },
     authentication: {
       name: 'user-auth',
@@ -73,12 +73,12 @@ export const passwordGenerationService = {
       // Enregistrer l'appel pour les statistiques
       await logFunctionCall({
         functionName: 'password-generation',
-        userId: request.userId,
+        userId: response.data.userId?.toString(),
         username: request.username,
         success: response.data.success || false,
         responseTime,
         timestamp: new Date(),
-        ipAddress: '127.0.0.1' // À récupérer depuis le client si nécessaire
+        ipAddress: '127.0.0.1'
       })
       
       return response.data
@@ -86,7 +86,6 @@ export const passwordGenerationService = {
       // Log de l'erreur
       await logFunctionCall({
         functionName: 'password-generation',
-        userId: request.userId,
         username: request.username,
         success: false,
         responseTime: 0,
@@ -120,7 +119,7 @@ export const twoFactorGenerationService = {
       // Enregistrer l'appel
       await logFunctionCall({
         functionName: '2fa-generation',
-        userId: request.userId,
+        userId: response.data.userId?.toString(),
         username: request.username,
         success: response.data.success || false,
         responseTime,
@@ -132,7 +131,6 @@ export const twoFactorGenerationService = {
     } catch (error: any) {
       await logFunctionCall({
         functionName: '2fa-generation',
-        userId: request.userId,
         username: request.username,
         success: false,
         responseTime: 0,
@@ -302,8 +300,9 @@ export const configService = {
 
   async testConnection(): Promise<boolean> {
     try {
-      // Test de connectivité avec l'endpoint de santé d'OpenFaaS
-      await axios.get(`${DEFAULT_CONFIG.baseUrl}/system/functions`, { timeout: 5000 })
+      // Test de connectivité avec l'endpoint de santé d'OpenFaaS via le proxy Vite
+      const url = DEFAULT_CONFIG.baseUrl ? `${DEFAULT_CONFIG.baseUrl}/system/functions` : '/system/functions'
+      await axios.get(url, { timeout: 5000 })
       return true
     } catch {
       return false

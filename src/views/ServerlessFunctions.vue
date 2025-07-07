@@ -14,7 +14,7 @@
       <!-- État de connexion OpenFaaS -->
       <div class="mb-6">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between mb-4">
             <div class="flex items-center">
               <div 
                 :class="[
@@ -41,6 +41,47 @@
                   Test...
                 </span>
               </button>
+            </div>
+          </div>
+          
+          <!-- Configuration OpenFaaS -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
+              Configuration OpenFaaS
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  URL OpenFaaS
+                </label>
+                <input
+                  v-model="config.baseUrl"
+                  @change="updateConfig"
+                  type="url"
+                  class="input text-xs"
+                  placeholder="http://localhost:8080"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Génération mot de passe
+                </label>
+                <input
+                  :value="config.functions.passwordGeneration.endpoint"
+                  class="input text-xs font-mono bg-gray-50 dark:bg-gray-700"
+                  readonly
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Génération 2FA
+                </label>
+                <input
+                  :value="config.functions.twoFactorGeneration.endpoint"
+                  class="input text-xs font-mono bg-gray-50 dark:bg-gray-700"
+                  readonly
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -83,33 +124,18 @@
           </div>
 
           <form @submit.prevent="generatePassword" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="pwd-userId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  ID Utilisateur
-                </label>
-                <input
-                  id="pwd-userId"
-                  v-model="passwordForm.userId"
-                  type="text"
-                  class="input"
-                  placeholder="user-12345"
-                  required
-                />
-              </div>
-              <div>
-                <label for="pwd-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nom d'utilisateur
-                </label>
-                <input
-                  id="pwd-username"
-                  v-model="passwordForm.username"
-                  type="text"
-                  class="input"
-                  placeholder="john.doe"
-                  required
-                />
-              </div>
+            <div>
+              <label for="pwd-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Nom d'utilisateur
+              </label>
+              <input
+                id="pwd-username"
+                v-model="passwordForm.username"
+                type="text"
+                class="input"
+                placeholder="username"
+                required
+              />
             </div>
 
             <div class="flex justify-end">
@@ -164,6 +190,7 @@
                     :src="`data:image/png;base64,${passwordResult.qrCode}`"
                     alt="QR Code mot de passe"
                     class="w-32 h-32 border rounded bg-white"
+                    @error="onQrCodeError"
                   />
                 </div>
               </div>
@@ -194,33 +221,18 @@
           </div>
 
           <form @submit.prevent="generate2FA" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="tfa-userId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  ID Utilisateur
-                </label>
-                <input
-                  id="tfa-userId"
-                  v-model="twoFAForm.userId"
-                  type="text"
-                  class="input"
-                  placeholder="user-12345"
-                  required
-                />
-              </div>
-              <div>
-                <label for="tfa-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nom d'utilisateur
-                </label>
-                <input
-                  id="tfa-username"
-                  v-model="twoFAForm.username"
-                  type="text"
-                  class="input"
-                  placeholder="john.doe"
-                  required
-                />
-              </div>
+            <div>
+              <label for="tfa-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Nom d'utilisateur
+              </label>
+              <input
+                id="tfa-username"
+                v-model="twoFAForm.username"
+                type="text"
+                class="input"
+                placeholder="username"
+                required
+              />
             </div>
 
             <div class="flex justify-end">
@@ -274,7 +286,7 @@
                     QR Code TOTP
                   </label>
                   <img 
-                    :src="`data:image/png;base64,${twoFAResult.qrCode}`"
+                    :src="twoFAResult.qrCode"
                     alt="QR Code 2FA"
                     class="w-32 h-32 border rounded bg-white"
                   />
@@ -320,7 +332,7 @@
                   v-model="authForm.username"
                   type="text"
                   class="input"
-                  placeholder="john.doe"
+                  placeholder="username"
                   required
                 />
               </div>
@@ -338,12 +350,12 @@
                 />
               </div>
               <div>
-                <label for="auth-totp" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label for="auth-mfa" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Code 2FA (6 chiffres)
                 </label>
                 <input
-                  id="auth-totp"
-                  v-model="authForm.totpCode"
+                  id="auth-mfa"
+                  v-model="authForm.mfa_code"
                   type="text"
                   class="input"
                   placeholder="123456"
@@ -380,7 +392,6 @@
                 ✅ Authentification réussie
               </h3>
               <div class="text-sm text-green-700 dark:text-green-300 space-y-1">
-                <p><strong>🎫 Token JWT:</strong> <code class="font-mono text-xs bg-green-100 dark:bg-green-800 px-1 rounded">{{ authResult.token?.substring(0, 30) }}...</code></p>
                 <p><strong>👤 Utilisateur:</strong> {{ authResult.username }}</p>
                 <p><strong>🆔 ID:</strong> {{ authResult.userId }}</p>
               </div>
@@ -522,26 +533,16 @@ import {
   EyeSlashIcon,
 } from '@heroicons/vue/24/outline'
 import type { ServerlessConfig } from '@/types'
+import serverlessApi, { 
+  passwordGenerationService, 
+  twoFactorGenerationService, 
+  authenticationService,
+  configService,
+  historyService
+} from '@/services/serverlessApi'
 
-// Simulation des services (à remplacer par les vrais services quand les fonctions seront déployées)
-const config = ref<ServerlessConfig>({
-  baseUrl: 'http://localhost:8080',
-  namespace: 'openfaas-fn',
-  functions: {
-    passwordGeneration: {
-      name: 'password-generator',
-      endpoint: '/function/password-generator'
-    },
-    twoFactorGeneration: {
-      name: '2fa-generator',
-      endpoint: '/function/2fa-generator'
-    },
-    authentication: {
-      name: 'user-auth',
-      endpoint: '/function/user-auth'
-    }
-  }
-})
+// Configuration (récupérée depuis le service)
+const config = ref<ServerlessConfig>(configService.getConfig())
 
 // État
 const activeTab = ref('password')
@@ -554,30 +555,28 @@ const isGeneratingPassword = ref(false)
 const isGenerating2FA = ref(false)
 const isAuthenticating = ref(false)
 
-// Formulaires
+// Formulaires (simplifiés selon les nouvelles APIs)
 const passwordForm = reactive({
-  userId: 'user-12345',
-  username: 'john.doe',
+  username: 'username',
 })
 
 const twoFAForm = reactive({
-  userId: 'user-12345',
-  username: 'john.doe',
+  username: 'username',
 })
 
 const authForm = reactive({
-  username: 'john.doe',
+  username: 'username',
   password: '',
-  totpCode: '',
+  mfa_code: '',
 })
 
-// Résultats (simulation)
+// Résultats
 const passwordResult = ref(null)
 const twoFAResult = ref(null)
 const authResult = ref(null)
 
-// Historique des appels (simulation locale)
-const functionCalls = ref([])
+// Historique des appels
+const functionCalls = computed(() => historyService.getFunctionCalls())
 
 // Configuration des onglets
 const tabs = [
@@ -604,29 +603,27 @@ const formatDateTime = (date) => {
 
 const getFunctionIcon = (functionName) => {
   const icons = {
-    'password-generator': KeyIcon,
-    '2fa-generator': ShieldCheckIcon,
-    'user-auth': UserIcon
+    'password-generation': KeyIcon,
+    '2fa-generation': ShieldCheckIcon,
+    'authentication': UserIcon
   }
   return icons[functionName] || ClockIcon
 }
 
 const getFunctionLabel = (functionName) => {
   const labels = {
-    'password-generator': 'Génération mot de passe',
-    '2fa-generator': 'Génération 2FA',
-    'user-auth': 'Authentification'
+    'password-generation': 'Génération mot de passe',
+    '2fa-generation': 'Génération 2FA',
+    'authentication': 'Authentification'
   }
   return labels[functionName] || functionName
 }
 
-// Simulation des fonctions serverless (à remplacer par les vrais appels API)
+// Fonctions serverless réelles
 const testConnection = async () => {
   isTestingConnection.value = true
   try {
-    // Simulation test de connexion
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    connectionStatus.value = false // Sera true quand OpenFaaS sera déployé
+    connectionStatus.value = await configService.testConnection()
   } finally {
     isTestingConnection.value = false
   }
@@ -637,35 +634,12 @@ const generatePassword = async () => {
   passwordResult.value = null
   
   try {
-    // Simulation d'appel à la fonction serverless
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Simulation de réponse positive
-    passwordResult.value = {
-      success: true,
-      userId: passwordForm.userId,
-      password: 'A2x$9Kp@8mL3#Qr7!Bc5&Nz1',
-      qrCode: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-      encryptedPassword: 'enc_' + btoa(passwordForm.userId),
-      expiresAt: new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000), // 6 mois
-      message: 'Mot de passe généré avec succès'
-    }
-    
-    // Enregistrer dans l'historique
-    addToHistory('password-generator', passwordForm.username, true, 1850)
-    
-  } catch (error) {
+    passwordResult.value = await passwordGenerationService.generatePassword(passwordForm)
+  } catch (error: any) {
     passwordResult.value = {
       success: false,
-      userId: passwordForm.userId,
-      password: '',
-      qrCode: '',
-      encryptedPassword: '',
-      expiresAt: new Date(),
-      error: 'Fonction serverless non disponible (en développement)'
+      error: error.message || error.error || 'Erreur lors de la génération du mot de passe'
     }
-    
-    addToHistory('password-generator', passwordForm.username, false, 0)
   } finally {
     isGeneratingPassword.value = false
   }
@@ -676,32 +650,12 @@ const generate2FA = async () => {
   twoFAResult.value = null
   
   try {
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    twoFAResult.value = {
-      success: true,
-      userId: twoFAForm.userId,
-      secret: 'JBSWY3DPEHPK3PXP',
-      qrCode: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-      backupCodes: ['123456', '789012', '345678', '901234', '567890', '234567'],
-      encryptedSecret: 'enc_' + btoa(twoFAForm.userId + '_2fa'),
-      message: 'Secret 2FA généré avec succès'
-    }
-    
-    addToHistory('2fa-generator', twoFAForm.username, true, 1234)
-    
-  } catch (error) {
+    twoFAResult.value = await twoFactorGenerationService.generateTwoFactor(twoFAForm)
+  } catch (error: any) {
     twoFAResult.value = {
       success: false,
-      userId: twoFAForm.userId,
-      secret: '',
-      qrCode: '',
-      backupCodes: [],
-      encryptedSecret: '',
-      error: 'Fonction serverless non disponible (en développement)'
+      error: error.message || error.error || 'Erreur lors de la génération du secret 2FA'
     }
-    
-    addToHistory('2fa-generator', twoFAForm.username, false, 0)
   } finally {
     isGenerating2FA.value = false
   }
@@ -712,73 +666,30 @@ const authenticate = async () => {
   authResult.value = null
   
   try {
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Simulation de différents cas
-    const scenarios = ['success', 'expired', 'failed']
-    const scenario = scenarios[Math.floor(Math.random() * scenarios.length)]
-    
-    if (scenario === 'success') {
-      authResult.value = {
-        success: true,
-        authenticated: true,
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-        userId: 'user-12345',
-        username: authForm.username,
-        message: 'Authentification réussie'
-      }
-      addToHistory('user-auth', authForm.username, true, 1567)
-    } else if (scenario === 'expired') {
-      authResult.value = {
-        success: false,
-        authenticated: false,
-        expired: true,
-        expirationDate: new Date(Date.now() - 7 * 30 * 24 * 60 * 60 * 1000), // 7 mois
-        requiresRenewal: true,
-        message: 'Identifiants expirés, renouvellement nécessaire'
-      }
-      addToHistory('user-auth', authForm.username, false, 987)
-    } else {
-      authResult.value = {
-        success: false,
-        authenticated: false,
-        error: 'Identifiants invalides ou code 2FA incorrect'
-      }
-      addToHistory('user-auth', authForm.username, false, 543)
-    }
-    
-  } catch (error) {
+    authResult.value = await authenticationService.authenticate(authForm)
+  } catch (error: any) {
     authResult.value = {
       success: false,
       authenticated: false,
-      error: 'Fonction serverless non disponible (en développement)'
+      error: error.message || error.error || 'Erreur lors de l\'authentification'
     }
-    
-    addToHistory('user-auth', authForm.username, false, 0)
   } finally {
     isAuthenticating.value = false
   }
 }
 
-const addToHistory = (functionName, username, success, responseTime) => {
-  functionCalls.value.unshift({
-    id: Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-    functionName,
-    username,
-    success,
-    responseTime,
-    timestamp: new Date(),
-    ipAddress: '127.0.0.1'
-  })
-  
-  // Garder seulement les 100 derniers
-  if (functionCalls.value.length > 100) {
-    functionCalls.value = functionCalls.value.slice(0, 100)
-  }
+const clearHistory = () => {
+  historyService.clearHistory()
 }
 
-const clearHistory = () => {
-  functionCalls.value = []
+const updateConfig = () => {
+  configService.updateConfig(config.value)
+}
+
+const onQrCodeError = (event: Event) => {
+  console.error('Erreur de chargement du QR code:', event)
+  const img = event.target as HTMLImageElement
+  img.style.display = 'none'
 }
 
 onMounted(() => {

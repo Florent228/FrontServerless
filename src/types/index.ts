@@ -120,30 +120,28 @@ export interface ServerlessFunction {
 
 // Fonction 1: Génération de mot de passe
 export interface PasswordGenerationRequest {
-  userId: string
   username: string
 }
 
 export interface PasswordGenerationResponse {
   success: boolean
-  userId: string
+  userId: number
   password: string // Mot de passe généré (24 caractères)
   qrCode: string // QR code en base64
   encryptedPassword: string // Mot de passe chiffré pour stockage
-  expiresAt: Date // Date d'expiration (6 mois)
+  expiresAt: string // Date d'expiration (6 mois)
   message?: string
   error?: string
 }
 
 // Fonction 2: Génération de secret 2FA
 export interface TwoFactorGenerationRequest {
-  userId: string
   username: string
 }
 
 export interface TwoFactorGenerationResponse {
   success: boolean
-  userId: string
+  userId: number
   secret: string // Secret TOTP
   qrCode: string // QR code TOTP en base64
   backupCodes: string[] // Codes de récupération
@@ -156,17 +154,16 @@ export interface TwoFactorGenerationResponse {
 export interface AuthenticationRequest {
   username: string
   password: string
-  totpCode: string // Code 2FA
+  mfa_code: string // Code 2FA (renommé de totpCode)
 }
 
 export interface AuthenticationResponse {
   success: boolean
   authenticated: boolean
-  token?: string // JWT token si authentifié
-  userId?: string
+  userId?: number
   username?: string
   expired?: boolean // True si les identifiants ont plus de 6 mois
-  expirationDate?: Date
+  expirationDate?: string
   requiresRenewal?: boolean // True si renouvellement nécessaire
   message?: string
   error?: string
